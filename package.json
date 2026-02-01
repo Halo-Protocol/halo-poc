@@ -1,0 +1,37 @@
+{
+  "name": "halo-protocol",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Halo Protocol — On-chain credit infrastructure for the next billion users",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/halo-protocol/halo-poc"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "dev": "turbo run dev --parallel",
+    "contracts:test": "pnpm --filter @halo-protocol/contracts test",
+    "contracts:coverage": "pnpm --filter @halo-protocol/contracts coverage",
+    "contracts:deploy:testnet": "pnpm --filter @halo-protocol/contracts deploy:testnet",
+    "contracts:deploy:mainnet": "pnpm --filter @halo-protocol/contracts deploy:mainnet",
+    "sdk:build": "pnpm --filter @halo-protocol/sdk build",
+    "sdk:publish": "pnpm --filter @halo-protocol/sdk publish",
+    "backend:dev": "pnpm --filter @halo-protocol/backend dev",
+    "backend:build": "pnpm --filter @halo-protocol/backend build",
+    "frontend:dev": "pnpm --filter @halo-protocol/frontend dev",
+    "frontend:build": "pnpm --filter @halo-protocol/frontend build",
+    "subgraph:deploy": "pnpm --filter @halo-protocol/subgraph deploy"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3"
+  }
+}

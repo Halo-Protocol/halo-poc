@@ -1,0 +1,16 @@
+{
+  "name": "@halo-protocol/subgraph",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy:studio": "graph deploy --studio halo-protocol-sepolia",
+    "deploy:mainnet": "graph deploy --studio halo-protocol-mainnet",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.71.0",
+    "@graphprotocol/graph-ts": "^0.32.0"
+  }
+}

@@ -1,0 +1,122 @@
+type Member @entity {
+  id: ID! # wallet address (lowercase)
+  score: Int!
+  tier: String! # POOR|FAIR|GOOD|VERY_GOOD|EXCEPTIONAL
+  circles: [CircleMember!]! @derivedFrom(field: "member")
+  attestationsReceived: [Attestation!]! @derivedFrom(field: "recipient")
+  attestationsIssued: [Attestation!]! @derivedFrom(field: "attester")
+  creditEvents: [CreditEvent!]! @derivedFrom(field: "user")
+  totalContributions: BigInt!
+  onTimePayments: Int!
+  defaults: Int!
+  circlesCompleted: Int!
+  joinedAt: BigInt!
+  lastActivity: BigInt!
+}
+
+type Circle @entity {
+  id: ID! # circleId as string
+  creator: Member!
+  status: String! # PENDING|FUNDING|ACTIVE|COMPLETED|DEFAULTED|CANCELLED
+  memberCount: Int!
+  contributionAmount: BigInt!
+  cycleDuration: Int!
+  gracePeriod: Int!
+  token: String!
+  currentRoundId: Int!
+  startTime: BigInt!
+  completedAt: BigInt
+  cancelledAt: BigInt
+  members: [CircleMember!]! @derivedFrom(field: "circle")
+  rounds: [Round!]! @derivedFrom(field: "circle")
+  tvl: BigInt!
+  totalPaid: BigInt!
+  createdAt: BigInt!
+  createdTx: String!
+}
+
+type CircleMember @entity {
+  id: ID! # circleId-memberAddress
+  circle: Circle!
+  member: Member!
+  hasDeposited: Boolean!
+  isActive: Boolean!
+  payoutRound: Int!
+  paidRounds: Int!
+  escrowRemaining: BigInt!
+  joinedAt: BigInt!
+}
+
+type Round @entity {
+  id: ID! # circleId-roundId
+  circle: Circle!
+  roundId: Int!
+  recipient: Member!
+  deadline: BigInt!
+  graceDeadline: BigInt!
+  totalCollected: BigInt!
+  payoutClaimed: Boolean!
+  payoutAmount: BigInt!
+  payments: [Payment!]! @derivedFrom(field: "round")
+}
+
+type Payment @entity {
+  id: ID! # txHash-logIndex
+  circle: Circle!
+  round: Round!
+  member: Member!
+  amount: BigInt!
+  onTime: Boolean!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type CreditEvent @entity {
+  id: ID! # txHash-logIndex
+  user: Member!
+  score: Int!
+  tier: String!
+  delta: Int!
+  reason: String!
+  timestamp: BigInt!
+  txHash: String!
+}
+
+type Attestation @entity {
+  id: ID! # uid
+  uid: Bytes!
+  type: String! # VOUCH|CIRCLE_COMPLETE|WARN|FRAUD_REPORT
+  attester: Member!
+  recipient: Member!
+  timestamp: BigInt!
+  revoked: Boolean!
+  revokedAt: BigInt
+  data: Bytes!
+  txHash: String!
+}
+
+type ProtocolMetrics @entity {
+  id: ID! # "singleton"
+  totalMembers: Int!
+  totalCircles: Int!
+  activeCircles: Int!
+  completedCircles: Int!
+  cancelledCircles: Int!
+  totalValueLocked: BigInt!
+  totalPayouts: BigInt!
+  totalContributions: BigInt!
+  defaultRate: BigDecimal!
+  averageScore: Int!
+  updatedAt: BigInt!
+}
+
+type DailyMetrics @entity {
+  id: ID! # date string YYYY-MM-DD
+  date: String!
+  newMembers: Int!
+  newCircles: Int!
+  completedCircles: Int!
+  volume: BigInt!
+  defaults: Int!
+  timestamp: BigInt!
+}

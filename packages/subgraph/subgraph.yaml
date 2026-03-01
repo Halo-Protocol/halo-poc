@@ -1,0 +1,126 @@
+specVersion: 0.0.5
+description: Halo Protocol — On-chain credit infrastructure
+repository: https://github.com/halo-protocol/halo-poc
+schema:
+  file: ./schema.graphql
+
+dataSources:
+  - kind: ethereum
+    name: CircleFactory
+    network: arbitrum-sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # Updated post-deploy
+      abi: CircleFactory
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Circle
+        - Member
+        - CircleMember
+        - ProtocolMetrics
+      abis:
+        - name: CircleFactory
+          file: ./abis/CircleFactory.json
+      eventHandlers:
+        - event: CircleCreated(indexed uint256,indexed address)
+          handler: handleCircleCreated
+      file: ./src/circle-factory.ts
+
+  - kind: ethereum
+    name: Circle
+    network: arbitrum-sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # Updated post-deploy
+      abi: Circle
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Circle
+        - CircleMember
+        - Round
+        - Payment
+        - Member
+        - ProtocolMetrics
+        - DailyMetrics
+      abis:
+        - name: Circle
+          file: ./abis/Circle.json
+      eventHandlers:
+        - event: MemberJoined(indexed uint256,indexed address,uint256)
+          handler: handleMemberJoined
+        - event: EscrowDeposited(indexed uint256,indexed address,uint256)
+          handler: handleEscrowDeposited
+        - event: CircleActivated(indexed uint256,uint256)
+          handler: handleCircleActivated
+        - event: ContributionMade(indexed uint256,indexed uint256,indexed address,uint256,bool)
+          handler: handleContributionMade
+        - event: PayoutClaimed(indexed uint256,indexed uint256,indexed address,uint256)
+          handler: handlePayoutClaimed
+        - event: SoftDefault(indexed uint256,indexed address,uint256,uint256)
+          handler: handleSoftDefault
+        - event: HardDefault(indexed uint256,indexed address,uint256)
+          handler: handleHardDefault
+        - event: EscrowReleased(indexed uint256,indexed address,uint256)
+          handler: handleEscrowReleased
+        - event: CircleCompleted(indexed uint256,uint256)
+          handler: handleCircleCompleted
+        - event: CircleCancelled(indexed uint256,string)
+          handler: handleCircleCancelled
+      file: ./src/circle.ts
+
+  - kind: ethereum
+    name: CreditScore
+    network: arbitrum-sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # Updated post-deploy
+      abi: CreditScore
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Member
+        - CreditEvent
+        - ProtocolMetrics
+      abis:
+        - name: CreditScore
+          file: ./abis/CreditScore.json
+      eventHandlers:
+        - event: ScoreUpdated(indexed address,indexed uint256,indexed uint256,uint8,int256)
+          handler: handleScoreUpdated
+        - event: ScoreInitialized(indexed address,uint256,uint256)
+          handler: handleScoreInitialized
+        - event: InactivityDecayApplied(indexed address,uint256,uint256,uint256)
+          handler: handleInactivityDecay
+      file: ./src/credit-score.ts
+
+  - kind: ethereum
+    name: HaloAttestations
+    network: arbitrum-sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # Updated post-deploy
+      abi: HaloAttestations
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Attestation
+        - Member
+      abis:
+        - name: HaloAttestations
+          file: ./abis/HaloAttestations.json
+      eventHandlers:
+        - event: AttestationCreated(indexed bytes32,indexed uint8,indexed address,address,uint256)
+          handler: handleAttestationCreated
+        - event: AttestationRevoked(indexed bytes32,indexed address,uint256)
+          handler: handleAttestationRevoked
+      file: ./src/attestations.ts

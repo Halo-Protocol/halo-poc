@@ -1,0 +1,201 @@
+// Halo Protocol — Prisma Schema
+// Off-chain cache and notification state (source of truth = blockchain + subgraph)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// MEMBERS
+// ============================================================
+
+model Member {
+  id              String   @id               // wallet address (lowercase)
+  score           Int      @default(500)
+  tier            String   @default("FAIR")
+  initialized     Boolean  @default(false)
+  lastSyncedAt    DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  // Notification preferences
+  notifyContribution  Boolean @default(true)
+  notifyDefault       Boolean @default(true)
+  notifyPayout        Boolean @default(true)
+  email               String? // Optional email for alerts
+
+  circleMembers   CircleMember[]
+  notifications   Notification[]
+  nonces          SiweNonce[]
+
+  @@index([score])
+  @@map("members")
+}
+
+// ============================================================
+// CIRCLES
+// ============================================================
+
+model Circle {
+  id                  String   @id    // on-chain circleId as string
+  creatorAddress      String
+  status              CircleStatus @default(PENDING)
+  memberCount         Int
+  contributionAmount  BigInt         // in token smallest unit
+  token               String         // token contract address
+  cycleDuration       Int            // seconds
+  gracePeriod         Int            // seconds
+  currentRoundId      Int      @default(0)
+  totalEscrowed       BigInt   @default(0)
+  createdAt           DateTime @default(now())
+  activatedAt         DateTime?
+  completedAt         DateTime?
+  lastSyncedAt        DateTime @default(now())
+
+  members             CircleMember[]
+  rounds              Round[]
+
+  @@index([status])
+  @@index([creatorAddress])
+  @@map("circles")
+}
+
+enum CircleStatus {
+  PENDING
+  FUNDING
+  ACTIVE
+  COMPLETED
+  DEFAULTED
+  CANCELLED
+}
+
+model CircleMember {
+  id              String   @id @default(cuid())
+  circleId        String
+  memberAddress   String
+  hasDeposited    Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  payoutRound     Int      @default(0)
+  paidRounds      Int      @default(0)
+  escrowRemaining BigInt   @default(0)
+  joinedAt        DateTime @default(now())
+
+  circle          Circle   @relation(fields: [circleId], references: [id])
+  member          Member   @relation(fields: [memberAddress], references: [id])
+
+  @@unique([circleId, memberAddress])
+  @@index([memberAddress])
+  @@map("circle_members")
+}
+
+model Round {
+  id              String   @id @default(cuid())
+  circleId        String
+  roundId         Int
+  recipientAddress String
+  deadline        DateTime
+  graceDeadline   DateTime
+  totalCollected  BigInt   @default(0)
+  payoutClaimed   Boolean  @default(false)
+  payoutAmount    BigInt?
+  payoutTxHash    String?
+  createdAt       DateTime @default(now())
+
+  circle          Circle   @relation(fields: [circleId], references: [id])
+
+  @@unique([circleId, roundId])
+  @@map("rounds")
+}
+
+// ============================================================
+// SCORE EVENTS (off-chain cache for fast queries)
+// ============================================================
+
+model ScoreEvent {
+  id          String   @id @default(cuid())
+  address     String
+  score       Int
+  oldScore    Int
+  delta       Int
+  reason      String
+  txHash      String
+  blockNumber BigInt
+  timestamp   DateTime
+
+  @@index([address])
+  @@index([timestamp])
+  @@map("score_events")
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id          String              @id @default(cuid())
+  address     String
+  type        NotificationType
+  title       String
+  body        String
+  metadata    Json?
+  read        Boolean             @default(false)
+  sentAt      DateTime            @default(now())
+
+  member      Member              @relation(fields: [address], references: [id])
+
+  @@index([address, read])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  CONTRIBUTION_DUE    // Payment due in 48h
+  CONTRIBUTION_OVERDUE // In grace period
+  PAYOUT_READY        // It's your payout round
+  PAYOUT_RECEIVED     // Payout received
+  DEFAULT_OCCURRED    // A member defaulted
+  CIRCLE_COMPLETED    // Circle finished
+  CIRCLE_CANCELLED    // Circle cancelled
+  SCORE_UPDATED       // Score changed
+}
+
+// ============================================================
+// SIWE NONCES (auth)
+// ============================================================
+
+model SiweNonce {
+  id          String   @id @default(cuid())
+  address     String
+  nonce       String   @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  member      Member   @relation(fields: [address], references: [id])
+
+  @@index([address])
+  @@map("siwe_nonces")
+}
+
+// ============================================================
+// PROTOCOL METRICS SNAPSHOT (hourly cache)
+// ============================================================
+
+model MetricsSnapshot {
+  id                  String   @id @default(cuid())
+  totalMembers        Int
+  totalCircles        Int
+  activeCircles       Int
+  completedCircles    Int
+  totalValueLocked    BigInt
+  defaultRate         Float
+  averageScore        Float
+  totalPayoutsVolume  BigInt
+  snapshotAt          DateTime @default(now())
+
+  @@index([snapshotAt])
+  @@map("metrics_snapshots")
+}

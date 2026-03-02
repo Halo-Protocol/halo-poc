@@ -9,6 +9,9 @@ const config = {
       net: false,
       tls: false,
     };
+    config.resolve.extensionAlias = {
+      '.js': ['.ts', '.tsx', '.js', '.jsx'],
+    };
     return config;
   },
 };

@@ -71,9 +71,9 @@ export default function CircleDetailPage({ params }: { params: Promise<{ id: str
     );
   }
 
-  const currentRound = circle.rounds?.[Number(circle.currentRoundId) - 1];
-  const deadline = currentRound ? new Date(Number(currentRound.deadline) * 1000) : null;
-  const isOverdue = deadline && deadline < new Date();
+  const currentRoundNum = Number(circle.currentRoundId ?? 0n);
+  const deadline: Date | null = null;
+  const isOverdue = false;
 
   return (
     <div className="min-h-screen px-4 py-12 max-w-4xl mx-auto">
@@ -107,9 +107,9 @@ export default function CircleDetailPage({ params }: { params: Promise<{ id: str
             </div>
           ))}
 
-          {deadline && (
-            <div className={`mt-2 p-3 rounded-lg text-sm ${isOverdue ? 'bg-red-900/30 text-red-400' : 'bg-gray-800 text-gray-300'}`}>
-              {isOverdue ? '⚠ Grace period active' : `Next deadline: ${deadline.toLocaleDateString()}`}
+          {circle.status === 'ACTIVE' && (
+            <div className="mt-2 p-3 rounded-lg text-sm bg-gray-800 text-gray-300">
+              Round {currentRoundNum} of {circle.params.memberCount}
             </div>
           )}
         </div>

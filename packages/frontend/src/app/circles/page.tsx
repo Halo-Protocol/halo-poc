@@ -8,7 +8,7 @@ type FilterStatus = 'ALL' | 'PENDING' | 'ACTIVE' | 'COMPLETED';
 
 export default function CirclesPage() {
   const [status, setStatus] = useState<FilterStatus>('ALL');
-  const { circles, isLoading } = useCircles(status === 'ALL' ? undefined : status);
+  const { circles, isLoading } = useCircles(status === 'ALL' ? undefined : { status });
 
   return (
     <div className="min-h-screen px-4 py-12 max-w-6xl mx-auto">

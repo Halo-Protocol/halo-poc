@@ -71,7 +71,7 @@ function ScoreContent({ address }: { address: Address }) {
           <div className="text-sm text-gray-400">
             Top <span className="text-white font-medium">{100 - (score?.percentile ?? 50)}%</span> of all users
           </div>
-          {score?.initialized === false && (
+          {score?.score === 500 && score?.history?.length === 0 && (
             <div className="mt-2 text-xs text-yellow-400">
               Join a circle to start building your score
             </div>

@@ -68,7 +68,7 @@ export default function CirclesPage() {
               contributionAmount={c.params.contributionAmount}
               token={c.params.token}
               cycleDuration={c.params.cycleDuration}
-              tvl={c.tvl ?? 0n}
+              tvl={c.totalValueLocked ?? 0n}
               creator={c.creator}
             />
           ))}

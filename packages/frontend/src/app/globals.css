@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+  }
+}
+
+@layer components {
+  .score-gradient-poor {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+  }
+  .score-gradient-fair {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+  }
+  .score-gradient-good {
+    background: linear-gradient(135deg, #eab308, #ca8a04);
+  }
+  .score-gradient-very_good {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+  }
+  .score-gradient-exceptional {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+  }
+}

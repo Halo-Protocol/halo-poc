@@ -1,0 +1,26 @@
+{
+  "name": "@halo-protocol/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Halo Protocol mobile app (React Native / Expo) — Phase 6 scaffold",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "build": "echo 'Mobile build: Phase 6 scope'"
+  },
+  "dependencies": {
+    "@halo-protocol/sdk": "workspace:*",
+    "@privy-io/expo": "^0.1.0",
+    "expo": "~52.0.0",
+    "expo-router": "~4.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.0"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
+  },
+  "_note": "Mobile app (Phase 6). SDK is mobile-compatible (no DOM deps). Uses Privy for embedded wallet."
+}

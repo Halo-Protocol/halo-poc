@@ -3,7 +3,7 @@
 import { use } from 'react';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useCircleDetail } from '@halo-protocol/sdk/react';
+import { useCircle as useCircleDetail } from '@halo-protocol/sdk/react';
 import { useContribute, useJoinCircle } from '../../../hooks/useContribute.js';
 import type { Address } from 'viem';
 

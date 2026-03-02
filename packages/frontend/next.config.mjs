@@ -8,6 +8,9 @@ const config = {
       fs: false,
       net: false,
       tls: false,
+      'pino-pretty': false,
+      lokijs: false,
+      encoding: false,
     };
     config.resolve.extensionAlias = {
       '.js': ['.ts', '.tsx', '.js', '.jsx'],

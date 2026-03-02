@@ -1,0 +1,82 @@
+name: Smart Contracts — Test & Coverage
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'packages/contracts/**'
+  pull_request:
+    paths:
+      - 'packages/contracts/**'
+
+env:
+  FOUNDRY_PROFILE: ci
+
+jobs:
+  test:
+    name: Foundry Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: cd packages/contracts && forge install
+
+      - name: Build
+        run: cd packages/contracts && forge build --sizes
+
+      - name: Run tests
+        run: cd packages/contracts && forge test -vvv --gas-report
+
+      - name: Run coverage
+        run: |
+          cd packages/contracts
+          forge coverage --report summary --report lcov
+          # Fail if overall coverage < 95%
+          COVERAGE=$(forge coverage --report summary 2>&1 | grep "Lines" | awk '{print $4}' | tr -d '%')
+          echo "Coverage: ${COVERAGE}%"
+          if [ "${COVERAGE%.*}" -lt 95 ]; then
+            echo "Coverage ${COVERAGE}% is below 95% threshold"
+            exit 1
+          fi
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/contracts/lcov.info
+          flags: contracts
+
+      - name: Run Slither (static analysis)
+        continue-on-error: true # Don't fail on warnings, review manually
+        uses: crytic/slither-action@v0.3.1
+        with:
+          target: packages/contracts/
+          slither-config: packages/contracts/slither.config.json
+          ignore-compile: false
+
+  fuzz:
+    name: Echidna Fuzzing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: cd packages/contracts && forge install
+
+      - name: Run invariant tests (Foundry fuzz)
+        run: cd packages/contracts && forge test --match-path "test/invariants/*" -vvv --fuzz-runs 10000

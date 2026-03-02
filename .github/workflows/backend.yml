@@ -1,0 +1,82 @@
+name: Backend — Test & Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/backend/**'
+  pull_request:
+    paths:
+      - 'packages/backend/**'
+
+jobs:
+  test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: halo_test
+          POSTGRES_USER: halo
+          POSTGRES_PASSWORD: halo
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm --filter @halo-protocol/backend typecheck
+
+      - name: Run tests
+        run: pnpm --filter @halo-protocol/backend test
+        env:
+          DATABASE_URL: postgresql://halo:halo@localhost:5432/halo_test
+          NODE_ENV: test
+
+      - name: Build
+        run: pnpm --filter @halo-protocol/backend build
+
+  docker:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -f packages/backend/Dockerfile -t halo-backend:${{ github.sha }} .
+
+      - name: Login to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        run: |
+          docker tag halo-backend:${{ github.sha }} ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+          docker tag halo-backend:${{ github.sha }} ghcr.io/${{ github.repository }}/backend:latest
+          docker push ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository }}/backend:latest

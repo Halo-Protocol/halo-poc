@@ -29,7 +29,7 @@ function truncateAddr(addr: string) {
 export default function CircleDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { address, isConnected } = useAccount();
-  const { circle, isLoading } = useCircleDetail(id);
+  const { circle, isLoading } = useCircleDetail(BigInt(id));
 
   const isMember = circle?.members.some(
     (m: any) => m.member.id.toLowerCase() === address?.toLowerCase()
